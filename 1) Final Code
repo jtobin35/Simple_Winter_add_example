@@ -1,0 +1,151 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from statsmodels.tsa.seasonal import seasonal_decompose 
+from statsmodels.tsa.holtwinters import SimpleExpSmoothing 
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
+import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+from ipywidgets import interact 
+import datetime
+
+MKT= pd.read_excel('/test/data/hadoop-data/JT/White Book/Monthly Market Days to Turn All.xlsx',sheet_name='MKT_D2T')
+Audi_MKT = MKT[MKT['MAKE']=='Audi']
+Audi_MKT = Audi_MKT.set_index('Monyy_Sold')
+VW_MKT = MKT[MKT['MAKE']=='Volkswagen']
+MKT_MKT = MKT[MKT['MAKE']=='MKT']
+VW_MKT = VW_MKT.set_index('Monyy_Sold')
+MKT_MKT = MKT_MKT.set_index('Monyy_Sold')
+
+
+fig = make_subplots(rows=1, cols=1,shared_xaxes=False,vertical_spacing=0.06,) 
+
+fig.add_trace(go.Scatter(x=MKT_MKT.index, y=MKT_MKT['MKT_D2T'],line_shape='linear',marker_color='black',
+                              line = dict(shape = 'linear', dash = 'solid'),name='Avg_Used_D2T_Mkt',
+                              connectgaps = True),secondary_y=False,row=1, col=1)
+
+
+fig.add_trace(go.Scatter(x=Audi_MKT.index, y=Audi_MKT['MKT_D2T'],line_shape='linear',marker_color='red',
+                              line = dict(shape = 'linear', dash = 'solid'),name='Avg_Used_D2T_Audi',
+                              connectgaps = True),secondary_y=False,row=1, col=1)
+
+
+fig.add_trace(go.Scatter(x=VW_MKT.index, y=VW_MKT['MKT_D2T'],line_shape='linear',marker_color='navy',
+                              line = dict(shape = 'linear', dash = 'solid'),name='Avg_Used_D2T_VW',
+                              connectgaps = True),secondary_y=False,row=1, col=1)
+
+
+fig.update_layout(title='<b>Average Days to Turn for Used Vehicles<b>',
+                   xaxis_title='Date for Measurement',
+                   yaxis_title='Average Days',title_x=0.5,
+                 annotations=[ dict(
+            showarrow=False,
+            x="2020-05-01",
+            y=61,
+            text="When Covid Restrictions dropped",
+            xanchor="left",
+            xshift=10,bordercolor="#c7c7c7",borderwidth=2,borderpad=4,bgcolor="#ff7f0e",opacity=0.8,
+            font=dict(color='black',size=12))])
+
+
+
+
+
+# change the cell width
+from IPython.core.display import display, HTML
+display(HTML("<style>.container { width:65% !important; }</style>"))
+
+
+fig.show()
+
+
+#Visually looking at the decomposition of the underlying data. Plotting the oberserved data, looking to see if there a trend, is there a seasonal component, what is the residual?
+
+
+decompose_result = seasonal_decompose(MKT_MKT['MKT_D2T'],model = 'multiplicative')
+decompose_result.plot()
+plt.show()
+
+
+# Set the value of Alpha and define m (Time Period)
+m=12
+alpha=.01
+MKT_MKT.index.freq='MS'
+
+MKT_MKT['HWES2_Add'] = ExponentialSmoothing(MKT_MKT['MKT_D2T'],trend='add').fit().fittedvalues
+MKT_MKT['HWES2_Mul'] = ExponentialSmoothing(MKT_MKT['MKT_D2T'],trend='mul').fit().fittedvalues
+
+
+fig = make_subplots(rows=1, cols=1,shared_xaxes=False,vertical_spacing=0.06,) 
+
+fig.add_trace(go.Scatter(x=MKT_MKT.index, y=MKT_MKT['MKT_D2T'],line_shape='linear',marker_color='black',
+                              line = dict(shape = 'linear', dash = 'solid'),name='Avg_Used_D2T_Mkt',
+                              connectgaps = True),secondary_y=False,row=1, col=1)
+
+
+fig.add_trace(go.Scatter(x=MKT_MKT.index, y=MKT_MKT['HWES2_Add'],line_shape='linear',marker_color='red',
+                              line = dict(shape = 'linear', dash = 'dash'),name='HWES2_Add',
+                              connectgaps = True),secondary_y=False,row=1, col=1)
+
+
+fig.add_trace(go.Scatter(x=MKT_MKT.index, y=MKT_MKT['HWES2_Mul'],line_shape='linear',marker_color='navy',
+                              line = dict(shape = 'linear', dash = 'dash'),name='HWES2_Mul',
+                              connectgaps = True),secondary_y=False,row=1, col=1)
+
+
+fig.update_layout(title='<b>Additive vs Multiplicative vs D2T<b>',
+                   xaxis_title='Date for Measurement',
+                   yaxis_title='Average Days',title_x=0.5,
+                 annotations=[ dict(
+            showarrow=False,
+            x="2020-05-01",
+            y=61,
+            text="When Covid Restrictions dropped",
+            xanchor="left",
+            xshift=10,bordercolor="#c7c7c7",borderwidth=2,borderpad=4,bgcolor="#ff7f0e",opacity=0.8,
+            font=dict(color='black',size=12))])
+
+
+
+
+
+fig.show()
+
+#Mean absolute % Error
+def mape(actual, pred): 
+    actual, pred = np.array(actual), np.array(pred)
+    return np.mean(np.abs((actual - pred) / actual)) * 100
+
+mape(MKT_MKT['MKT_D2T'],MKT_MKT['HWES2_Add'])
+
+from statsmodels.tsa.holtwinters import Holt
+fit1 = Holt(MKT_MKT['MKT_D2T']).fit(smoothing_level=0.8, smoothing_slope=0.2, optimized=False)
+fcast1 = fit1.forecast(12).rename("Holt's linear trend")
+fcast1 = pd.DataFrame(fcast1)
+
+fit2 = Holt(MKT_MKT['MKT_D2T'], exponential=True).fit(smoothing_level=0.8, smoothing_slope=0.2, optimized=False)
+fcast2 = fit2.forecast(12).rename("Exponential trend")
+fcast2 = pd.DataFrame(fcast2)
+
+fit3 = Holt(MKT_MKT['MKT_D2T'], damped=True).fit(smoothing_level=0.8, smoothing_slope=0.2)
+fcast3 = fit3.forecast(12).rename("Additive damped trend")
+fcast3 = pd.DataFrame(fcast3)
+
+fig = make_subplots(rows=1, cols=1,shared_xaxes=False,vertical_spacing=0.06,) 
+
+fig.add_trace(go.Scatter(x=MKT_MKT.index, y=MKT_MKT['MKT_D2T'],line_shape='linear',marker_color='black',
+                              line = dict(shape = 'linear', dash = 'solid'),name='Avg_Used_D2T_Mkt',
+                              connectgaps = True),secondary_y=False,row=1, col=1)
+
+
+fig.add_trace(go.Scatter(x=fcast3.index, y=fcast3['Additive damped trend'],line_shape='linear',marker_color='green',
+                              line = dict(shape = 'linear', dash = 'dash'),name='damped',
+                              connectgaps = True),secondary_y=False,row=1, col=1)
+
+fig.add_trace(go.Scatter(x=fcast2.index, y=fcast2['Exponential trend'],line_shape='linear',marker_color='blue',
+                              line = dict(shape = 'linear', dash = 'dash'),name='expo',
+                              connectgaps = True),secondary_y=False,row=1, col=1)
+
+fig.add_trace(go.Scatter(x=fcast1.index, y=fcast1["Holt's linear trend"],line_shape='linear',marker_color='purple',
+                              line = dict(shape = 'linear', dash = 'dash'),name='linear',
+                              connectgaps = True),secondary_y=False,row=1, col=1)
