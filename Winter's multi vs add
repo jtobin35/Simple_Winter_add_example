@@ -7,6 +7,14 @@ MKT_MKT.index.freq='MS'
 MKT_MKT['HWES2_Add'] = ExponentialSmoothing(MKT_MKT['MKT_D2T'],trend='add').fit().fittedvalues
 MKT_MKT['HWES2_Mul'] = ExponentialSmoothing(MKT_MKT['MKT_D2T'],trend='mul').fit().fittedvalues
 
+#Mean absolute % Error
+def mape(actual, pred): 
+    actual, pred = np.array(actual), np.array(pred)
+    return round(np.mean(np.abs((actual - pred) / actual)) * 100,2)
+
+Add = mape(MKT_MKT['MKT_D2T'],MKT_MKT['HWES2_Add'])
+Mul =  mape(MKT_MKT['MKT_D2T'],MKT_MKT['HWES2_Mul'])
+
 fig = make_subplots(rows=1, cols=1,shared_xaxes=False,vertical_spacing=0.06,) 
 
 fig.add_trace(go.Scatter(x=MKT_MKT.index, y=MKT_MKT['MKT_D2T'],line_shape='linear',marker_color='black',
@@ -24,7 +32,7 @@ fig.add_trace(go.Scatter(x=MKT_MKT.index, y=MKT_MKT['HWES2_Mul'],line_shape='lin
                               connectgaps = True),secondary_y=False,row=1, col=1)
 
 
-fig.update_layout(title='<b>Additive vs Multiplicative vs D2T<b>',
+fig.update_layout(title='<b>Additive MAPE' +" " +str(Add) +" " + '<b>Multiplicative MAPE' +" " +str(Mul)  ,
                    xaxis_title='Date for Measurement',
                    yaxis_title='Average Days',title_x=0.5,
                  annotations=[ dict(
