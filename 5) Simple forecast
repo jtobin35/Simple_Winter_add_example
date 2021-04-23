@@ -29,3 +29,16 @@ fig.add_trace(go.Scatter(x=fcast2.index, y=fcast2['Exponential trend'],line_shap
 fig.add_trace(go.Scatter(x=fcast1.index, y=fcast1["Holt's linear trend"],line_shape='linear',marker_color='purple',
                               line = dict(shape = 'linear', dash = 'dash'),name='linear',
                               connectgaps = True),secondary_y=False,row=1, col=1)
+
+
+fig.update_layout(title='Simple Forecast' ,
+                   xaxis_title='Date for Measurement',
+                   yaxis_title='Average Days',title_x=0.5,
+                 annotations=[ dict(
+            showarrow=False,
+            x="2020-05-01",
+            y=61,
+            text="When Covid Restrictions dropped",
+            xanchor="left",
+            xshift=10,bordercolor="#c7c7c7",borderwidth=2,borderpad=4,bgcolor="#ff7f0e",opacity=0.8,
+            font=dict(color='black',size=12))])
