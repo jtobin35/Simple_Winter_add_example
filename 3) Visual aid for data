@@ -1,0 +1,39 @@
+fig = make_subplots(rows=1, cols=1,shared_xaxes=False,vertical_spacing=0.06,) 
+
+fig.add_trace(go.Scatter(x=MKT_MKT.index, y=MKT_MKT['MKT_D2T'],line_shape='linear',marker_color='black',
+                              line = dict(shape = 'linear', dash = 'solid'),name='Avg_Used_D2T_Mkt',
+                              connectgaps = True),secondary_y=False,row=1, col=1)
+
+
+fig.add_trace(go.Scatter(x=Audi_MKT.index, y=Audi_MKT['MKT_D2T'],line_shape='linear',marker_color='red',
+                              line = dict(shape = 'linear', dash = 'solid'),name='Avg_Used_D2T_Audi',
+                              connectgaps = True),secondary_y=False,row=1, col=1)
+
+
+fig.add_trace(go.Scatter(x=VW_MKT.index, y=VW_MKT['MKT_D2T'],line_shape='linear',marker_color='navy',
+                              line = dict(shape = 'linear', dash = 'solid'),name='Avg_Used_D2T_VW',
+                              connectgaps = True),secondary_y=False,row=1, col=1)
+
+
+fig.update_layout(title='<b>Average Days to Turn for Used Vehicles<b>',
+                   xaxis_title='Date for Measurement',
+                   yaxis_title='Average Days',title_x=0.5,
+                 annotations=[ dict(
+            showarrow=False,
+            x="2020-05-01",
+            y=61,
+            text="When Covid Restrictions dropped",
+            xanchor="left",
+            xshift=10,bordercolor="#c7c7c7",borderwidth=2,borderpad=4,bgcolor="#ff7f0e",opacity=0.8,
+            font=dict(color='black',size=12))])
+
+
+
+
+
+# change the cell width
+from IPython.core.display import display, HTML
+display(HTML("<style>.container { width:65% !important; }</style>"))
+
+
+fig.show()
