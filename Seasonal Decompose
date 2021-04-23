@@ -1,0 +1,6 @@
+#Visually looking at the decomposition of the underlying data. Plotting the oberserved data, looking to see if there a trend, is there a seasonal component, what is the residual?
+
+
+decompose_result = seasonal_decompose(MKT_MKT['MKT_D2T'],model = 'multiplicative')
+decompose_result.plot()
+plt.show()
