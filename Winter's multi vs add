@@ -1,0 +1,43 @@
+# Set the value of Alpha and define m (Time Period)
+m=12
+alpha=.01
+MKT_MKT.index.freq='MS'
+
+
+MKT_MKT['HWES2_Add'] = ExponentialSmoothing(MKT_MKT['MKT_D2T'],trend='add').fit().fittedvalues
+MKT_MKT['HWES2_Mul'] = ExponentialSmoothing(MKT_MKT['MKT_D2T'],trend='mul').fit().fittedvalues
+
+fig = make_subplots(rows=1, cols=1,shared_xaxes=False,vertical_spacing=0.06,) 
+
+fig.add_trace(go.Scatter(x=MKT_MKT.index, y=MKT_MKT['MKT_D2T'],line_shape='linear',marker_color='black',
+                              line = dict(shape = 'linear', dash = 'solid'),name='Avg_Used_D2T_Mkt',
+                              connectgaps = True),secondary_y=False,row=1, col=1)
+
+
+fig.add_trace(go.Scatter(x=MKT_MKT.index, y=MKT_MKT['HWES2_Add'],line_shape='linear',marker_color='red',
+                              line = dict(shape = 'linear', dash = 'dash'),name='HWES2_Add',
+                              connectgaps = True),secondary_y=False,row=1, col=1)
+
+
+fig.add_trace(go.Scatter(x=MKT_MKT.index, y=MKT_MKT['HWES2_Mul'],line_shape='linear',marker_color='navy',
+                              line = dict(shape = 'linear', dash = 'dash'),name='HWES2_Mul',
+                              connectgaps = True),secondary_y=False,row=1, col=1)
+
+
+fig.update_layout(title='<b>Additive vs Multiplicative vs D2T<b>',
+                   xaxis_title='Date for Measurement',
+                   yaxis_title='Average Days',title_x=0.5,
+                 annotations=[ dict(
+            showarrow=False,
+            x="2020-05-01",
+            y=61,
+            text="When Covid Restrictions dropped",
+            xanchor="left",
+            xshift=10,bordercolor="#c7c7c7",borderwidth=2,borderpad=4,bgcolor="#ff7f0e",opacity=0.8,
+            font=dict(color='black',size=12))])
+
+
+
+
+
+fig.show()
