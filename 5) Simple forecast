@@ -1,0 +1,31 @@
+from statsmodels.tsa.holtwinters import Holt
+fit1 = Holt(MKT_MKT['MKT_D2T']).fit(smoothing_level=0.8, smoothing_slope=0.2, optimized=False)
+fcast1 = fit1.forecast(12).rename("Holt's linear trend")
+fcast1 = pd.DataFrame(fcast1)
+
+fit2 = Holt(MKT_MKT['MKT_D2T'], exponential=True).fit(smoothing_level=0.8, smoothing_slope=0.2, optimized=False)
+fcast2 = fit2.forecast(12).rename("Exponential trend")
+fcast2 = pd.DataFrame(fcast2)
+
+fit3 = Holt(MKT_MKT['MKT_D2T'], damped=True).fit(smoothing_level=0.8, smoothing_slope=0.2)
+fcast3 = fit3.forecast(12).rename("Additive damped trend")
+fcast3 = pd.DataFrame(fcast3)
+
+fig = make_subplots(rows=1, cols=1,shared_xaxes=False,vertical_spacing=0.06,) 
+
+fig.add_trace(go.Scatter(x=MKT_MKT.index, y=MKT_MKT['MKT_D2T'],line_shape='linear',marker_color='black',
+                              line = dict(shape = 'linear', dash = 'solid'),name='Avg_Used_D2T_Mkt',
+                              connectgaps = True),secondary_y=False,row=1, col=1)
+
+
+fig.add_trace(go.Scatter(x=fcast3.index, y=fcast3['Additive damped trend'],line_shape='linear',marker_color='green',
+                              line = dict(shape = 'linear', dash = 'dash'),name='damped',
+                              connectgaps = True),secondary_y=False,row=1, col=1)
+
+fig.add_trace(go.Scatter(x=fcast2.index, y=fcast2['Exponential trend'],line_shape='linear',marker_color='blue',
+                              line = dict(shape = 'linear', dash = 'dash'),name='expo',
+                              connectgaps = True),secondary_y=False,row=1, col=1)
+
+fig.add_trace(go.Scatter(x=fcast1.index, y=fcast1["Holt's linear trend"],line_shape='linear',marker_color='purple',
+                              line = dict(shape = 'linear', dash = 'dash'),name='linear',
+                              connectgaps = True),secondary_y=False,row=1, col=1)
